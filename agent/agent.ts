@@ -8,6 +8,15 @@ const groq = process.env.GROQ_API_KEY
       baseURL: "https://api.groq.com/openai/v1",
       apiKey: process.env.GROQ_API_KEY,
       includeUsage: true,
+      // Groq rejects `reasoning_content` on prior assistant messages; strip it.
+      fetch: async (url, init) => {
+        if (typeof init?.body === "string") {
+          const body = JSON.parse(init.body);
+          for (const m of body.messages ?? []) delete m.reasoning_content;
+          init = { ...init, body: JSON.stringify(body) };
+        }
+        return fetch(url, init);
+      },
     })
   : null;
 
