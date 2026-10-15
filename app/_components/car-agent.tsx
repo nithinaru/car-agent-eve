@@ -142,6 +142,49 @@ const CHIP_STYLES = [
   "-rotate-1 bg-red-600 text-white border-white/40",
 ] as const;
 
+function listingId(url: string): string {
+  return url.match(/(\d+)\.html$/)?.[1] ?? "";
+}
+
+function Tachometer({ busy }: { readonly busy: boolean }) {
+  const ticks = Array.from({ length: 9 }, (_, i) => i);
+  return (
+    <svg aria-hidden="true" className="h-auto w-full" viewBox="0 0 200 120">
+      <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#27272a" strokeWidth="14" />
+      <path d="M 156.6 43.4 A 80 80 0 0 1 180 100" fill="none" stroke="#dc2626" strokeWidth="14" />
+      {ticks.map((i) => {
+        const a = Math.PI - (i / 8) * Math.PI;
+        const x1 = 100 + Math.cos(a) * 62;
+        const y1 = 100 - Math.sin(a) * 62;
+        const x2 = 100 + Math.cos(a) * 72;
+        const y2 = 100 - Math.sin(a) * 72;
+        return (
+          <g key={i}>
+            <line stroke={i >= 7 ? "#ef4444" : "#a1a1aa"} strokeWidth="2" x1={x1} x2={x2} y1={y1} y2={y2} />
+            <text
+              fill={i >= 7 ? "#ef4444" : "#71717a"}
+              fontFamily="var(--font-spec)"
+              fontSize="9"
+              textAnchor="middle"
+              x={100 + Math.cos(a) * 50}
+              y={100 - Math.sin(a) * 50 + 3}
+            >
+              {i}
+            </text>
+          </g>
+        );
+      })}
+      <g className={`needle ${busy ? "needle-busy" : ""}`}>
+        <line stroke="#facc15" strokeLinecap="round" strokeWidth="3" x1="100" x2="100" y1="104" y2="30" />
+      </g>
+      <circle cx="100" cy="100" fill="#0a0a0a" r="7" stroke="#facc15" strokeWidth="2" />
+      <text fill="#71717a" fontFamily="var(--font-spec)" fontSize="7" textAnchor="middle" x="100" y="118">
+        x1000 RPM
+      </text>
+    </svg>
+  );
+}
+
 function Odometer({ miles }: { readonly miles: number | null }) {
   const label = formatMiles(miles);
   if (!label || miles === null) return null;
@@ -151,7 +194,7 @@ function Odometer({ miles }: { readonly miles: number | null }) {
       <span aria-hidden="true" className="inline-flex">
         {digits.split("").map((d, i) => (
           <span
-            className={`flex h-6 w-[1.15rem] items-center justify-center border border-black/60 text-sm ${
+            className={`flex h-8 w-6 items-center justify-center border border-black/60 text-lg ${
               i === digits.length - 1 ? "bg-white text-black" : "bg-zinc-900 text-white"
             }`}
             key={`${i}-${d}`}
@@ -160,7 +203,7 @@ function Odometer({ miles }: { readonly miles: number | null }) {
           </span>
         ))}
       </span>
-      <span aria-hidden="true" className="text-[10px] text-white/50 uppercase">mi</span>
+      <span aria-hidden="true" className="text-[10px] uppercase opacity-60">mi</span>
     </span>
   );
 }
@@ -200,7 +243,8 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col overflow-x-hidden bg-zinc-950 text-white">
+    <div className="asphalt relative isolate flex min-h-dvh flex-col overflow-x-hidden text-white">
+      <div aria-hidden="true" className="lane-line -z-10 pointer-events-none absolute inset-y-0 left-3 w-[3px] sm:left-8 lg:left-[calc(50%-36rem)]" />
       <header className="relative">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className={`flex items-center gap-2 text-xs uppercase tracking-widest ${SPEC}`}>
@@ -232,7 +276,9 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
-        <div className="relative mb-10 sm:mb-14">
+        <div className="relative mb-10 grid items-end gap-6 sm:mb-14 md:grid-cols-[minmax(0,1fr)_14rem]">
+          <div aria-hidden="true" className="speed-lines pointer-events-none absolute inset-x-[-10%] top-[30%] h-1/2 -z-10" />
+          <div>
           <p className={`mb-3 text-[11px] text-yellow-400 uppercase tracking-[0.2em] sm:text-xs ${SPEC}`}>
             // AI used-car hunter · powered by eve
           </p>
@@ -252,6 +298,15 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
             Tell it your budget, location and vibe. It digs through real listings and brings back the
             keepers.
           </p>
+          </div>
+          <div className="w-44 rotate-2 justify-self-end md:w-full">
+            <div className="rounded-t-full border border-white/10 bg-zinc-950/80 px-3 pt-3 pb-1 shadow-[0_0_40px_rgba(239,68,68,0.15)]">
+              <Tachometer busy={isBusy} />
+            </div>
+            <p className={`mt-1 text-center text-[10px] text-white/40 uppercase tracking-[0.25em] ${SPEC}`}>
+              {isBusy ? "redline · hunting" : "idle · ready"}
+            </p>
+          </div>
         </div>
 
         <form className="relative max-w-3xl" onSubmit={handleSubmit}>
@@ -321,15 +376,24 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
             </div>
           ) : null}
 
-          <div className="mt-8 flex justify-end sm:pr-6">
+          <div className="mt-8 flex items-center justify-end gap-4 sm:pr-6">
+            <span className={`hidden text-right text-[10px] text-white/40 uppercase leading-relaxed tracking-[0.2em] sm:block ${SPEC}`}>
+              push to
+              <br />
+              start ⏎
+            </span>
             <button
-              className={`inline-flex h-14 -skew-x-12 items-center justify-center gap-3 bg-red-600 px-8 font-bold text-base text-white uppercase tracking-wider shadow-[6px_6px_0_0_#facc15] transition-all hover:-translate-y-0.5 hover:bg-red-500 disabled:opacity-40 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:bg-red-600 ${SPEC}`}
+              className={`ignite group relative flex size-32 shrink-0 flex-col items-center justify-center rounded-full border-4 border-zinc-950 bg-[radial-gradient(circle_at_35%_30%,#f87171,#b91c1c_60%,#7f1d1d)] text-white uppercase transition-transform hover:scale-[1.03] active:scale-95 disabled:animate-none disabled:opacity-50 disabled:grayscale-[40%] disabled:hover:scale-100 ${SPEC}`}
               disabled={submitted || !location.trim() || !request.trim()}
               type="submit"
             >
-              <span className="skew-x-12">
-                {submitted ? (isBusy ? "Hunting…" : "Done") : "Find cars →"}
+              <span className="text-[9px] tracking-[0.25em] opacity-80">
+                {submitted ? (isBusy ? "engine on" : "parked") : "engine"}
               </span>
+              <span className="font-bold text-sm leading-tight tracking-wider">
+                {submitted ? (isBusy ? "IGNITION…" : "DONE") : "START"}
+              </span>
+              <span className="mt-1 text-[9px] tracking-[0.2em] opacity-80">{submitted ? "" : "find cars →"}</span>
             </button>
           </div>
         </form>
@@ -339,10 +403,19 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
             {isBusy ? (
               <div
                 aria-live="polite"
-                className={`flex items-center gap-2 text-xs text-yellow-400 uppercase tracking-[0.2em] ${SPEC}`}
+                className={`flex flex-wrap items-center gap-3 text-xs text-yellow-400 uppercase tracking-[0.2em] ${SPEC}`}
               >
+                <span className="flex gap-1 text-white/30">
+                  {["P", "R", "N"].map((g) => (
+                    <span key={g}>{g}</span>
+                  ))}
+                  <span className="border border-yellow-400 px-1 text-yellow-400">D</span>
+                </span>
                 <span className="animate-blink size-2 rounded-full bg-red-500" />
                 {(toolStatus ?? "Revving up…").toUpperCase()}
+                <span aria-hidden="true" className="ml-2 hidden h-2 w-28 overflow-hidden border border-white/20 sm:block">
+                  <span className="block h-full w-2/3 animate-pulse bg-gradient-to-r from-red-600 to-yellow-400" />
+                </span>
               </div>
             ) : null}
 
@@ -440,8 +513,14 @@ function CarResults({ result }: { readonly result: CarResult }) {
           >
             ★ Top pick
           </span>
-          <CarImage car={top} className="aspect-[4/3] md:aspect-auto md:min-h-80" />
-          <div className="flex flex-col gap-4 p-5 sm:p-7">
+          <div className="spotlight relative flex items-center justify-center p-4 sm:p-6">
+            <span aria-hidden="true" className="absolute inset-x-[15%] bottom-3 h-6 rounded-[50%] bg-black/70 blur-md" />
+            <CarImage car={top} className="relative aspect-[4/3] w-full shadow-2xl shadow-black/70 md:min-h-72" />
+          </div>
+          <div className="flex flex-col gap-4 border-white/10 border-t-4 border-t-red-600 bg-zinc-100 p-5 text-zinc-900 sm:p-7 md:border-t-0 md:border-l-4 md:border-l-red-600">
+            <p className={`border-zinc-900 border-b-2 pb-1 text-[10px] uppercase tracking-[0.2em] ${SPEC}`}>
+              Window sticker · Listing #{listingId(top.url)}
+            </p>
             <h3 className={`text-3xl uppercase leading-[0.95] sm:text-4xl ${DISPLAY}`}>{top.title}</h3>
             <div>
               <PriceTag big price={top.price} />
@@ -449,15 +528,15 @@ function CarResults({ result }: { readonly result: CarResult }) {
             <div className="flex flex-wrap items-center gap-3">
               <Odometer miles={top.miles} />
               {top.location ? (
-                <span className={`inline-flex items-center gap-1 text-[11px] text-white/60 uppercase ${SPEC}`}>
+                <span className={`inline-flex items-center gap-1 text-[11px] text-zinc-600 uppercase ${SPEC}`}>
                   <MapPinIcon className="size-3 text-red-500" />
                   {top.location}
                 </span>
               ) : null}
             </div>
-            {top.reason ? <p className="text-sm text-white/70 leading-relaxed sm:text-base">{top.reason}</p> : null}
+            {top.reason ? <p className="text-sm text-zinc-700 leading-relaxed sm:text-base">{top.reason}</p> : null}
             <span
-              className={`mt-auto inline-flex items-center gap-1 pt-2 text-xs text-yellow-400 uppercase tracking-widest group-hover:underline ${SPEC}`}
+              className={`mt-auto inline-flex items-center gap-1 pt-2 text-xs text-red-700 uppercase tracking-widest group-hover:underline ${SPEC}`}
             >
               View listing <ExternalLinkIcon className="size-3" />
             </span>
@@ -469,7 +548,7 @@ function CarResults({ result }: { readonly result: CarResult }) {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((car, index) => (
             <a
-              className={`group flex flex-col overflow-hidden border border-white/10 bg-zinc-900/70 transition-all hover:rotate-0 hover:border-yellow-400 ${offsets[index % offsets.length]}`}
+              className={`group flex flex-col overflow-hidden border border-white/10 bg-zinc-900/90 shadow-[6px_6px_0_0_rgba(0,0,0,0.5)] transition-all hover:rotate-0 hover:border-yellow-400 ${offsets[index % offsets.length]}`}
               href={car.url}
               key={`${index}-${car.url}`}
               rel="noreferrer"
@@ -477,15 +556,22 @@ function CarResults({ result }: { readonly result: CarResult }) {
             >
               <div className="relative">
                 <CarImage car={car} className="aspect-[16/10] w-full" />
+                {car.price ? (
+                  <span className="absolute top-0 right-4 flex flex-col items-center">
+                    <span aria-hidden="true" className="h-4 w-px bg-white/60" />
+                    <span aria-hidden="true" className="-mb-1 size-2 rounded-full border border-black bg-zinc-950" />
+                    <PriceTag price={car.price} />
+                  </span>
+                ) : null}
                 <span className={`absolute right-2 bottom-2 bg-black/80 px-1.5 text-[10px] text-white/70 ${SPEC}`}>
                   #{String(index + 2).padStart(2, "0")}
                 </span>
               </div>
-              <div className="flex flex-1 flex-col gap-3 p-4">
+              <div className="relative flex flex-1 flex-col gap-3 border-zinc-700 border-t border-dashed p-4">
+                <p className={`truncate text-[9px] text-white/40 uppercase tracking-[0.18em] ${SPEC}`}>
+                  Listing #{listingId(car.url)}
+                </p>
                 <h3 className={`text-xl uppercase leading-none ${DISPLAY}`}>{car.title}</h3>
-                <div>
-                  <PriceTag price={car.price} />
-                </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Odometer miles={car.miles} />
                   {car.location ? (
