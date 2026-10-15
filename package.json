@@ -18,10 +18,7 @@
     "start:eve": "eve start"
   },
   "dependencies": {
-    "@vercel/connect": "2.2.0",
-    "ai": "^7.0.137",
-    "eve": "^0.79.2",
-    "zod": "4.5.4",
+    "@ai-sdk/openai-compatible": "^3.0.70",
     "@radix-ui/react-use-controllable-state": "1.2.2",
     "@shadcn/react": "0.3.1",
     "@shikijs/core": "3.23.0",
@@ -32,9 +29,12 @@
     "@streamdown/math": "1.0.2",
     "@streamdown/mermaid": "1.0.2",
     "@tailwindcss/postcss": "4.3.0",
+    "@vercel/connect": "2.2.0",
+    "ai": "^7.0.137",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
+    "eve": "^0.79.2",
     "lucide-react": "1.16.0",
     "motion": "12.40.0",
     "nanoid": "5.1.11",
@@ -46,13 +46,14 @@
     "streamdown": "2.5.0",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.3.0",
-    "use-stick-to-bottom": "1.1.4"
+    "use-stick-to-bottom": "1.1.4",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@types/node": "24.x",
-    "typescript": "6.0.3",
     "@types/react": "19.2.15",
-    "@types/react-dom": "19.2.3"
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
   },
   "engines": {
     "node": "24.x"
