@@ -17,7 +17,7 @@ const UA =
 
 export default defineTool({
   description:
-    "Search a Shopify store's real catalog. Returns up to 20 matching products with price, variantId, image, productUrl and availability. Call this before recommending anything. Use short keyword queries (e.g. 'running shoe', 'socks'); call multiple times for multiple item types.",
+    "Search a Shopify store's real catalog. Returns up to 8 matching products with price, variantId, image, productUrl and availability. Call this before recommending anything. Use short keyword queries (e.g. 'running shoe', 'socks'); call multiple times for multiple item types.",
   inputSchema: z.object({
     storeUrl: z.string().describe("Store domain, e.g. www.allbirds.com"),
     query: z.string().describe("Keywords to match against title/type/tags"),
@@ -65,19 +65,17 @@ export default defineTool({
       })
       .filter((x) => x.score > 0 && x.v)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 20);
+      .slice(0, 8);
 
     return {
       store: host,
       totalProductsScanned: products.length,
       results: scored.map(({ p, v }) => ({
         title: p.title,
-        variantTitle: v!.title,
         price: v!.price,
         variantId: v!.id,
-        image: p.images?.[0]?.src ?? null,
+        image: p.images?.[0]?.src?.split("?")[0] ?? null,
         productUrl: `https://${host}/products/${p.handle}`,
-        available: true,
       })),
     };
   },

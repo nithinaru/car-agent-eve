@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shop-agent",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "export PATH=$HOME/.local/node24/bin:$PATH && npm run dev"],
+      "port": 3000
+    }
+  ]
+}
