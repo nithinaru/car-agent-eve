@@ -20,8 +20,8 @@ const mono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shop Agent",
-  description: "An AI personal shopper for any Shopify store",
+  title: "Car Agent",
+  description: "An AI car-hunting agent built with eve",
 };
 
 export default function RootLayout({ children }: { readonly children: ReactNode }) {

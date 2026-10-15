@@ -1,5 +1,5 @@
-import { ShopAgent } from "@/app/_components/shop-agent";
+import { CarAgent } from "@/app/_components/car-agent";
 
 export default function Page() {
-  return <ShopAgent />;
+  return <CarAgent />;
 }
