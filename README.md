@@ -1,35 +1,65 @@
-# eve-shop-tmp
+# Car Agent
 
-This is an [eve](https://eve.dev) agent bootstrapped with [`eve init`](https://eve.dev/docs/reference/cli#eve-init).
+An AI used-car hunter built with [eve](https://eve.dev). Tell it your budget, location and vibe, and it searches real listings and brings back the top three, each with a reason.
+
+**Live demo → [car-agent-eve.vercel.app](https://car-agent-eve.vercel.app)**
+
+<p align="center">
+  <img src="docs/hero.jpg" width="49%" alt="Car Agent home screen" />
+  <img src="docs/hunting.jpg" width="49%" alt="Car Agent searching listings" />
+</p>
+<p align="center">
+  <img src="docs/top-pick.jpg" width="49%" alt="Top pick card" />
+  <img src="docs/results.jpg" width="49%" alt="More picks and See all listings" />
+</p>
+
+## How it works
+
+1. You enter a city and a plain-English request, like *"a fun weekend car under $20k, manual if possible"*.
+2. The eve agent calls its `search_cars` tool, which turns the request into filters and searches Craigslist listings near that city.
+3. It picks the best three listings, and the page shows them as cards with the photo, price, mileage, location and a one-line reason. "See all listings" opens the full search.
+
+The agent only uses listings returned by the tool. It never makes up cars, prices or links.
+
+| Path | What it does |
+| --- | --- |
+| `agent/instructions.md` | The agent's personality and process |
+| `agent/tools/search_cars.ts` | Searches Craigslist by location, price and mileage |
+| `agent/channels/eve.ts` | The HTTP channel the page talks to (open, so the demo works without a login) |
+| `agent/agent.ts` | Model setup: Groq's free tier, or Claude through Vercel AI Gateway |
+| `app/_components/car-agent.tsx` | The whole UI |
 
 ## Getting started
 
-First, run the development server:
+Requires Node 24.
 
 ```bash
-eve dev
+npm install
 ```
 
-The development TUI opens an interactive session where you can send messages to your agent.
+Create `.env.local` with one of these keys:
 
-Start by editing `agent/instructions.md` to define the agent's identity, purpose, tone, and response guidelines. Configure its model and runtime behavior in `agent/agent.ts`.
+```bash
+GROQ_API_KEY=...          # free at console.groq.com (used first if set)
+AI_GATEWAY_API_KEY=...    # Vercel AI Gateway, runs Claude Sonnet
+```
 
-Add capabilities under `agent/`, including tools, connections, channels, skills, subagents, and schedules. eve reloads your changes as you work.
+Then run the app:
 
-## Learn more
+```bash
+npm run dev
+```
 
-To learn more about eve, explore these resources:
-
-- [eve documentation](https://eve.dev/docs) — learn about eve's features and authoring APIs.
-- [Build an Agent tutorial](https://eve.dev/docs/tutorial/first-agent) — build and deploy an agent step by step.
-- [eve on GitHub](https://github.com/vercel/eve) — view the source and contribute.
+Open [localhost:3000](http://localhost:3000). The UI and the agent run together in one Next.js app.
 
 ## Deploy on Vercel
 
-Deploy your agent to [Vercel](https://vercel.com) from the project root:
+Import the repo on [vercel.com/new](https://vercel.com/new) with the Next.js framework preset and the root directory left as `./`. Add `GROQ_API_KEY` or `AI_GATEWAY_API_KEY` as an environment variable, then deploy. No other config is needed.
 
-```bash
-eve deploy
-```
+## Notes
 
-`eve deploy` links a Vercel project if needed and deploys the agent to production. See the [eve deployment documentation](https://eve.dev/docs/guides/deployment/vercel) for authentication, environment variables, and deployment options.
+- **Speed:** on Groq's free tier a search takes about 30 seconds. With AI Gateway it's a few seconds.
+- **Listings:** cars come from Craigslist's public search. This is a demo; Craigslist's terms don't allow automated access for a real product.
+- **Learn more:** [eve docs](https://eve.dev/docs) · [eve on GitHub](https://github.com/vercel/eve)
+
+Built with eve on Vercel.
