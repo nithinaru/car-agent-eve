@@ -1,6 +1,5 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { normalizeStore } from "../lib/shopify";
 
 export default defineTool({
   description: "Build a Shopify cart permalink with the chosen variants pre-loaded. Returns the checkout URL.",
@@ -14,3 +13,9 @@ export default defineTool({
     return { cartUrl: `https://${store}/cart/${path}` };
   },
 });
+
+function normalizeStore(storeUrl: string): string {
+  const s = storeUrl.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+  if (!s) throw new Error("storeUrl is required");
+  return s.toLowerCase();
+}

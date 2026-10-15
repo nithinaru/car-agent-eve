@@ -20,8 +20,8 @@ const mono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "eve-shop-tmp",
-  description: "A Next.js starter for eve agents with AI Elements.",
+  title: "Shop Agent",
+  description: "An AI personal shopper for any Shopify store",
 };
 
 export default function RootLayout({ children }: { readonly children: ReactNode }) {

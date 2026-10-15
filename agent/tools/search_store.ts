@@ -1,6 +1,5 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { normalizeStore } from "../lib/shopify";
 
 type ShopifyVariant = { id: number; title: string; price: string; available?: boolean };
 type ShopifyProduct = {
@@ -51,10 +50,12 @@ export default defineTool({
         const title = p.title.toLowerCase();
         const hay = `${title} ${p.product_type ?? ""} ${tags}`.toLowerCase();
         let score = 0;
+        let matched = 0;
         for (const t of terms) {
-          if (title.includes(t)) score += 3;
-          else if (hay.includes(t)) score += 1;
+          if (title.includes(t)) { score += 3; matched++; }
+          else if (hay.includes(t)) { score += 1; matched++; }
         }
+        score += matched === terms.length ? 100 : 0;
         const variants = p.variants.filter((v) => v.available !== false);
         const v =
           variants
@@ -81,3 +82,9 @@ export default defineTool({
     };
   },
 });
+
+function normalizeStore(storeUrl: string): string {
+  const s = storeUrl.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+  if (!s) throw new Error("storeUrl is required");
+  return s.toLowerCase();
+}
