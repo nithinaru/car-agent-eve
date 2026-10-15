@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Anton, Geist, Geist_Mono, Space_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,20 @@ const mono = Geist_Mono({
   display: "swap",
 });
 
+const display = Anton({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const spec = Space_Mono({
+  variable: "--font-spec",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Car Agent",
   description: "An AI car-hunting agent built with eve",
@@ -26,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { readonly children: ReactNode }) {
   return (
-    <html className={cn(sans.variable, mono.variable)} lang="en">
+    <html className={cn(sans.variable, mono.variable, display.variable, spec.variable)} lang="en">
       <body>
         <TooltipProvider>{children}</TooltipProvider>
       </body>

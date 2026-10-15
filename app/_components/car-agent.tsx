@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
-import { Shimmer } from "@/components/ai-elements/shimmer";
 import { WEB_CHAT_AGENT } from "@/app/eve-agent";
 
 type CarListing = {
@@ -134,8 +133,37 @@ function formatMiles(miles: number | null): string | null {
   return `${Math.round(miles).toLocaleString("en-US")} mi`;
 }
 
-const inputClass =
-  "rounded-md border border-white/15 bg-zinc-900/60 px-3 text-base text-white outline-none placeholder:text-white/30 focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-60 sm:text-sm";
+const DISPLAY = "font-[family-name:var(--font-display)]";
+const SPEC = "font-[family-name:var(--font-spec)]";
+
+const CHIP_STYLES = [
+  "-rotate-2 bg-yellow-400 text-black border-black",
+  "rotate-1 bg-zinc-100 text-zinc-900 border-red-600 border-dashed",
+  "-rotate-1 bg-red-600 text-white border-white/40",
+] as const;
+
+function Odometer({ miles }: { readonly miles: number | null }) {
+  const label = formatMiles(miles);
+  if (!label || miles === null) return null;
+  const digits = String(Math.round(miles)).padStart(6, "0").slice(-7);
+  return (
+    <span aria-label={label} className={`inline-flex items-center gap-1.5 ${SPEC}`}>
+      <span aria-hidden="true" className="inline-flex">
+        {digits.split("").map((d, i) => (
+          <span
+            className={`flex h-6 w-[1.15rem] items-center justify-center border border-black/60 text-sm ${
+              i === digits.length - 1 ? "bg-white text-black" : "bg-zinc-900 text-white"
+            }`}
+            key={`${i}-${d}`}
+          >
+            {d}
+          </span>
+        ))}
+      </span>
+      <span aria-hidden="true" className="text-[10px] text-white/50 uppercase">mi</span>
+    </span>
+  );
+}
 
 export function CarAgent() {
   const [resetKey, setResetKey] = useState(0);
@@ -172,20 +200,19 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-950 text-white">
-      <header className="relative border-white/10 border-b">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3 font-semibold tracking-tight">
-            <span aria-hidden="true" className="flex h-5 gap-[3px]">
-              <span className="w-[3px] skew-x-[-20deg] bg-red-500" />
-              <span className="w-[3px] skew-x-[-20deg] bg-red-500" />
+    <div className="flex min-h-dvh flex-col overflow-x-hidden bg-zinc-950 text-white">
+      <header className="relative">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <div className={`flex items-center gap-2 text-xs uppercase tracking-widest ${SPEC}`}>
+            <span aria-hidden="true" className="flex h-4 gap-[3px]">
+              <span className="w-[4px] skew-x-[-20deg] bg-red-500" />
+              <span className="w-[4px] skew-x-[-20deg] bg-yellow-400" />
             </span>
-            <Car className="size-5 text-red-500" />
-            Car Agent
+            CAR/AGENT
           </div>
           {submitted ? (
             <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-3 py-1.5 text-sm transition-colors hover:bg-white/10"
+              className={`inline-flex -skew-x-6 items-center gap-1.5 border border-yellow-400/60 px-3 py-1.5 text-xs text-yellow-400 uppercase transition-colors hover:bg-yellow-400 hover:text-black ${SPEC}`}
               onClick={onReset}
               type="button"
             >
@@ -194,62 +221,91 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
             </button>
           ) : null}
         </div>
-        {/* Road lane divider */}
         <div
           aria-hidden="true"
-          className="h-px w-full"
+          className="h-[3px] w-full"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(90deg, rgba(250,204,21,0.45) 0 24px, transparent 24px 44px)",
+              "repeating-linear-gradient(90deg, rgba(250,204,21,0.7) 0 32px, transparent 32px 56px)",
           }}
         />
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
-        <div className="mb-8 text-center sm:mb-10">
-          <h1 className="inline-flex items-center gap-3 font-semibold text-4xl tracking-tighter sm:text-5xl">
-            <Car className="size-9 text-red-500 sm:size-11" />
-            Car Agent
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-base text-white/60 sm:text-lg">
-            Tell it your budget, location and vibe — it searches real listings.
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+        <div className="relative mb-10 sm:mb-14">
+          <p className={`mb-3 text-[11px] text-yellow-400 uppercase tracking-[0.2em] sm:text-xs ${SPEC}`}>
+            // AI used-car hunter · powered by eve
+          </p>
+          <div className="relative inline-block">
+            <span
+              aria-hidden="true"
+              className="-skew-x-12 -z-0 absolute top-[38%] -left-3 h-[34%] w-[110%] bg-red-600"
+            />
+            <h1
+              className={`relative text-[22vw] uppercase leading-[0.8] tracking-tight sm:text-[10rem] lg:text-[12rem] ${DISPLAY}`}
+            >
+              <span className="block text-white">Car</span>
+              <span className="text-stroke block pl-[0.4em]">Agent</span>
+            </h1>
+          </div>
+          <p className="mt-6 max-w-md border-red-500 border-l-4 pl-3 text-base text-white/70 sm:text-lg">
+            Tell it your budget, location and vibe. It digs through real listings and brings back the
+            keepers.
           </p>
         </div>
 
-        <form
-          className="mx-auto flex max-w-2xl flex-col gap-4 rounded-xl border border-white/10 bg-zinc-900/50 p-4 shadow-lg shadow-black/40 sm:p-5"
-          onSubmit={handleSubmit}
-        >
-          <label className="flex flex-col gap-1.5">
-            <span className="font-medium text-sm">Location</span>
-            <input
-              className={`h-10 ${inputClass}`}
-              disabled={submitted}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="San Francisco"
-              value={location}
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="font-medium text-sm">What car are you looking for?</span>
-            <textarea
-              className={`min-h-24 resize-y py-2 ${inputClass}`}
-              disabled={submitted}
-              onChange={(e) => setRequest(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  e.currentTarget.form?.requestSubmit();
-                }
-              }}
-              placeholder="a reliable commuter under $15k with less than 100k miles"
-              value={request}
-            />
-          </label>
+        <form className="relative max-w-3xl" onSubmit={handleSubmit}>
+          <div className="grid gap-6 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] sm:items-start">
+            <label className="flex -rotate-1 flex-col sm:mt-6">
+              <span className={`mb-1.5 text-[10px] text-white/50 uppercase tracking-widest ${SPEC}`}>
+                Location / plate
+              </span>
+              <span className="relative rounded-md border-[3px] border-zinc-900 bg-yellow-400 p-1 shadow-[4px_4px_0_0_#dc2626]">
+                <span className="flex items-center justify-between px-2 text-[9px] text-black/70 uppercase tracking-[0.3em]">
+                  <span className={SPEC}>· where ·</span>
+                  <MapPinIcon className="size-3" />
+                </span>
+                <input
+                  className={`h-11 w-full rounded-sm border-2 border-black/80 bg-yellow-300 px-2 text-center text-black text-lg uppercase tracking-[0.15em] outline-none placeholder:text-black/35 focus:bg-white disabled:opacity-70 ${SPEC}`}
+                  disabled={submitted}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="SAN FRANCISCO"
+                  value={location}
+                />
+              </span>
+            </label>
+            <label className="flex flex-col sm:rotate-[0.6deg]">
+              <span className={`mb-1.5 flex items-center gap-2 text-[10px] text-white/50 uppercase tracking-widest ${SPEC}`}>
+                <GaugeIcon className="size-3 text-red-500" />
+                What are you hunting?
+              </span>
+              <span className="relative block rounded-t-[2rem] rounded-b-md border border-white/15 bg-gradient-to-b from-zinc-800 to-zinc-900 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                <span aria-hidden="true" className="absolute top-2 right-4 flex gap-1">
+                  <span className="size-1.5 rounded-full bg-red-500" />
+                  <span className="size-1.5 rounded-full bg-yellow-400" />
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                </span>
+                <textarea
+                  className="min-h-28 w-full resize-y bg-transparent px-1 pt-3 text-base text-white outline-none placeholder:text-white/30 disabled:opacity-60 sm:text-sm"
+                  disabled={submitted}
+                  onChange={(e) => setRequest(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  placeholder="a reliable commuter under $15k with less than 100k miles"
+                  value={request}
+                />
+              </span>
+            </label>
+          </div>
+
           {!submitted ? (
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
+            <div className="mt-7 flex flex-wrap gap-3 sm:pl-8">
+              {EXAMPLES.map((ex, i) => (
                 <button
-                  className="rounded-full border border-white/15 px-3 py-1 text-left text-white/70 text-xs transition-colors hover:border-red-500 hover:text-white"
+                  className={`max-w-full border-2 px-3 py-1.5 text-left text-[11px] uppercase leading-snug shadow-[2px_2px_0_0_rgba(0,0,0,0.6)] transition-transform hover:rotate-0 hover:scale-105 ${CHIP_STYLES[i % CHIP_STYLES.length]} ${SPEC}`}
                   key={ex.location}
                   onClick={() => {
                     setLocation(ex.location);
@@ -258,31 +314,40 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
                   title={ex.request}
                   type="button"
                 >
-                  {ex.location} · {ex.request}
+                  <span className="block font-bold">#{String(i + 1).padStart(2, "0")} · {ex.location}</span>
+                  <span className="block normal-case opacity-80">{ex.request}</span>
                 </button>
               ))}
             </div>
           ) : null}
-          <button
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 font-medium text-sm text-white transition-colors hover:bg-red-500 disabled:opacity-40 disabled:hover:bg-red-600"
-            disabled={submitted || !location.trim() || !request.trim()}
-            type="submit"
-          >
-            {submitted ? (isBusy ? "Hunting…" : "Done") : "Find cars"}
-            {!submitted ? <ArrowRightIcon className="size-4" /> : null}
-          </button>
+
+          <div className="mt-8 flex justify-end sm:pr-6">
+            <button
+              className={`inline-flex h-14 -skew-x-12 items-center justify-center gap-3 bg-red-600 px-8 font-bold text-base text-white uppercase tracking-wider shadow-[6px_6px_0_0_#facc15] transition-all hover:-translate-y-0.5 hover:bg-red-500 disabled:opacity-40 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:bg-red-600 ${SPEC}`}
+              disabled={submitted || !location.trim() || !request.trim()}
+              type="submit"
+            >
+              <span className="skew-x-12">
+                {submitted ? (isBusy ? "Hunting…" : "Done") : "Find cars →"}
+              </span>
+            </button>
+          </div>
         </form>
 
         {submitted ? (
-          <section className="mx-auto mt-10 max-w-5xl space-y-8">
+          <section className="mt-12 space-y-10">
             {isBusy ? (
-              <div aria-live="polite" className="text-center text-sm text-white/60">
-                <Shimmer duration={1}>{toolStatus ?? "Revving up…"}</Shimmer>
+              <div
+                aria-live="polite"
+                className={`flex items-center gap-2 text-xs text-yellow-400 uppercase tracking-[0.2em] ${SPEC}`}
+              >
+                <span className="animate-blink size-2 rounded-full bg-red-500" />
+                {(toolStatus ?? "Revving up…").toUpperCase()}
               </div>
             ) : null}
 
             {clean ? (
-              <div className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base">
+              <div className="max-w-2xl border-white/10 border-l pl-4 text-sm leading-relaxed sm:ml-10 sm:text-base">
                 <MessageResponse>{clean}</MessageResponse>
               </div>
             ) : null}
@@ -291,21 +356,21 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
 
             {errorMessage ? (
               <div
-                className="mx-auto flex max-w-2xl items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm"
+                className="flex max-w-2xl items-start gap-3 border-2 border-red-500 bg-red-500/10 px-3 py-2.5 text-sm"
                 role="alert"
               >
                 <AlertCircleIcon className="mt-0.5 size-4 shrink-0 text-red-500" />
                 <div>
-                  <p className="font-medium">Request failed</p>
+                  <p className={`font-bold text-xs uppercase ${SPEC}`}>Request failed</p>
                   <p className="mt-0.5 text-white/60">{errorMessage}</p>
                 </div>
               </div>
             ) : null}
 
             {!isBusy ? (
-              <div className="text-center">
+              <div>
                 <button
-                  className="inline-flex items-center gap-1.5 text-sm text-white/60 underline-offset-4 hover:text-white hover:underline"
+                  className={`inline-flex items-center gap-1.5 text-white/60 text-xs uppercase tracking-widest underline-offset-4 hover:text-yellow-400 hover:underline ${SPEC}`}
                   onClick={onReset}
                   type="button"
                 >
@@ -318,81 +383,143 @@ function CarAgentSession({ onReset }: { readonly onReset: () => void }) {
         ) : null}
       </main>
 
-      <footer className="border-white/10 border-t py-6 text-center text-white/50 text-xs">
-        Built with eve on Vercel · Listings from Craigslist
+      <footer className={`border-white/10 border-t px-4 py-6 text-[10px] text-white/45 uppercase tracking-[0.2em] sm:px-6 ${SPEC}`}>
+        <div className="mx-auto max-w-6xl">Built with eve on Vercel · Listings from Craigslist</div>
       </footer>
     </div>
   );
 }
 
-function CarResults({ result }: { readonly result: CarResult }) {
+function PriceTag({ price, big }: { readonly price: string; readonly big?: boolean }) {
+  if (!price) return null;
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {result.cars.map((car, index) => {
-          const miles = formatMiles(car.miles);
-          return (
+    <span
+      className={`inline-block -rotate-2 bg-yellow-400 px-2.5 py-0.5 font-bold text-black shadow-[3px_3px_0_0_#000] ${
+        big ? "text-3xl sm:text-4xl" : "text-xl"
+      } ${SPEC}`}
+    >
+      {price}
+    </span>
+  );
+}
+
+function CarImage({ car, className }: { readonly car: CarListing; readonly className: string }) {
+  return (
+    <div className={`overflow-hidden bg-zinc-800 ${className}`}>
+      {car.image ? (
+        // biome-ignore lint/performance/noImgElement: remote Craigslist images
+        <img
+          alt={car.title}
+          className="size-full object-cover grayscale-[30%] transition-all duration-300 group-hover:scale-[1.04] group-hover:grayscale-0"
+          loading="lazy"
+          src={car.image}
+        />
+      ) : (
+        <div className="flex size-full items-center justify-center">
+          <Car className="size-12 text-white/20" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CarResults({ result }: { readonly result: CarResult }) {
+  const [top, ...rest] = result.cars;
+  const offsets = ["sm:mt-0 sm:rotate-[0.8deg]", "sm:mt-12 sm:-rotate-1", "sm:mt-4 sm:rotate-[0.5deg]"];
+  return (
+    <div className="space-y-12">
+      {top ? (
+        <a
+          className="group relative grid overflow-hidden border-2 border-white/15 bg-zinc-900 transition-colors hover:border-red-500 md:grid-cols-[1.2fr_1fr]"
+          href={top.url}
+          rel="noreferrer"
+          target="_blank"
+        >
+          <span
+            className={`absolute top-3 left-0 z-10 bg-red-600 px-3 py-1 text-xs text-white uppercase tracking-[0.25em] ${SPEC}`}
+          >
+            ★ Top pick
+          </span>
+          <CarImage car={top} className="aspect-[4/3] md:aspect-auto md:min-h-80" />
+          <div className="flex flex-col gap-4 p-5 sm:p-7">
+            <h3 className={`text-3xl uppercase leading-[0.95] sm:text-4xl ${DISPLAY}`}>{top.title}</h3>
+            <div>
+              <PriceTag big price={top.price} />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Odometer miles={top.miles} />
+              {top.location ? (
+                <span className={`inline-flex items-center gap-1 text-[11px] text-white/60 uppercase ${SPEC}`}>
+                  <MapPinIcon className="size-3 text-red-500" />
+                  {top.location}
+                </span>
+              ) : null}
+            </div>
+            {top.reason ? <p className="text-sm text-white/70 leading-relaxed sm:text-base">{top.reason}</p> : null}
+            <span
+              className={`mt-auto inline-flex items-center gap-1 pt-2 text-xs text-yellow-400 uppercase tracking-widest group-hover:underline ${SPEC}`}
+            >
+              View listing <ExternalLinkIcon className="size-3" />
+            </span>
+          </div>
+        </a>
+      ) : null}
+
+      {rest.length > 0 ? (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {rest.map((car, index) => (
             <a
-              className="group flex flex-col overflow-hidden rounded-xl border border-white/10 bg-zinc-900/60 transition-colors hover:border-red-500/60"
+              className={`group flex flex-col overflow-hidden border border-white/10 bg-zinc-900/70 transition-all hover:rotate-0 hover:border-yellow-400 ${offsets[index % offsets.length]}`}
               href={car.url}
               key={`${index}-${car.url}`}
               rel="noreferrer"
               target="_blank"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-zinc-800">
-                {car.image ? (
-                  // biome-ignore lint/performance/noImgElement: remote Craigslist images
-                  <img
-                    alt={car.title}
-                    className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    loading="lazy"
-                    src={car.image}
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center">
-                    <Car className="size-12 text-white/20" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-1 flex-col gap-2.5 p-4">
-                <h3 className="font-medium text-sm leading-snug">{car.title}</h3>
-                <span className="font-bold text-2xl text-red-500 tracking-tight">
-                  {car.price}
+              <div className="relative">
+                <CarImage car={car} className="aspect-[16/10] w-full" />
+                <span className={`absolute right-2 bottom-2 bg-black/80 px-1.5 text-[10px] text-white/70 ${SPEC}`}>
+                  #{String(index + 2).padStart(2, "0")}
                 </span>
-                {miles || car.location ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {miles ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-white/80 text-xs">
-                        <GaugeIcon className="size-3" />
-                        {miles}
-                      </span>
-                    ) : null}
-                    {car.location ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-white/80 text-xs">
-                        <MapPinIcon className="size-3" />
-                        {car.location}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
-                <p className="text-sm text-white/60 leading-relaxed">{car.reason}</p>
-                <span className="mt-auto inline-flex items-center gap-1 pt-1 text-white/50 text-xs group-hover:text-white">
+              </div>
+              <div className="flex flex-1 flex-col gap-3 p-4">
+                <h3 className={`text-xl uppercase leading-none ${DISPLAY}`}>{car.title}</h3>
+                <div>
+                  <PriceTag price={car.price} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Odometer miles={car.miles} />
+                  {car.location ? (
+                    <span className={`inline-flex items-center gap-1 text-[10px] text-white/55 uppercase ${SPEC}`}>
+                      <MapPinIcon className="size-3" />
+                      {car.location}
+                    </span>
+                  ) : null}
+                </div>
+                {car.reason ? <p className="text-sm text-white/60 leading-relaxed">{car.reason}</p> : null}
+                <span
+                  className={`mt-auto inline-flex items-center gap-1 pt-1 text-[11px] text-white/50 uppercase tracking-widest group-hover:text-yellow-400 ${SPEC}`}
+                >
                   View listing <ExternalLinkIcon className="size-3" />
                 </span>
               </div>
             </a>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : null}
+
       {result.searchUrl ? (
         <a
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-red-600 font-medium text-base text-white transition-colors hover:bg-red-500"
+          className="hazard group block border-2 border-black p-1.5 transition-transform hover:-translate-y-0.5"
           href={result.searchUrl}
           rel="noreferrer"
           target="_blank"
         >
-          See all listings
-          <ArrowRightIcon className="size-4" />
+          <span
+            className={`flex h-12 items-center justify-center gap-2 bg-zinc-950 text-sm text-yellow-400 uppercase tracking-[0.25em] group-hover:bg-black ${SPEC}`}
+          >
+            See all listings
+            <ArrowRightIcon className="size-4" />
+          </span>
         </a>
       ) : null}
     </div>
